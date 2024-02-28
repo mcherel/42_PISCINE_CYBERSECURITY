@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+# create venv
+python3 -m venv .venv
+
+# activate venv
+source .venv/bin/activate
+
+# install modules
+pip install requests beautifulsoup4
+
+# launch python script
+python3 spider.py $@
+
+# quit venv
+deactivate
