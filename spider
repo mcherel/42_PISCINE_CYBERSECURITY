@@ -1,19 +1,26 @@
 #!/usr/bin/bash
 
-# create venv
-python3 -m venv .venv
+if [[ $1 == "-h" || -e ".venv" ]]; then
+    python3 spider.py $@
+else
+    # create venv
+    python3 -m venv .venv
 
-# activate venv
-source .venv/bin/activate
+    # activate venv
+    source .venv/bin/activate  
 
-# install modules
-pip install requests beautifulsoup4
+    # install modules
+    pip install -U pip
+    
+    # install modules
+    pip install requests beautifulsoup4
 
-# launch python script
-python3 spider.py $@
+    # launch python script
+    python3 spider.py $@
 
-# quit venv
-deactivate
+    # quit venv
+    deactivate
 
-# remove .venv
-rm -fr .venv
+    # remove .venv
+    rm -fr .venv
+fi
