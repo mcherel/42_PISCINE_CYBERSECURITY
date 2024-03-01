@@ -1,7 +1,14 @@
 #!/usr/bin/bash
 
+chmod +x spider
 if [[ $1 == "-h" || -e ".venv" ]]; then
-    python3 spider.py $@
+    # activate venv
+    source .venv/bin/activate
+    # VENV Path
+    echo "Your virtual environment is here : \n"
+    echo $VIRTUAL_ENV
+    # launch python script
+    python3 spider.py "$@"
 else
     # create venv
     python3 -m venv .venv
@@ -9,18 +16,31 @@ else
     # activate venv
     source .venv/bin/activate  
 
-    # install modules
+    # update pip
     pip install -U pip
     
-    # install modules
-    pip install requests beautifulsoup4
+    if [[ -e "requirements.txt" ]]; then
+        # installation of packages from dependencies
+        pip install -r requirements.txt
+        echo "Packages installed from requirements.txt"
+    else
+        # install modules
+        pip install requests beautifulsoup4
+
+        # Freeze Installed Packages:
+        pip freeze > requirements.txt
+    fi
+
+    # VENV Path
+    echo "Your virtual environment is here : \n"
+    echo $VIRTUAL_ENV
 
     # launch python script
-    python3 spider.py $@
+    python3 spider.py "$@"
 
     # quit venv
-    deactivate
+    #deactivate
 
     # remove .venv
-    rm -fr .venv
+    #rm -fr .venv
 fi
