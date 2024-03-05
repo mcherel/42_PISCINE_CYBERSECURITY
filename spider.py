@@ -5,6 +5,7 @@ import sys
 import os
 import requests
 from bs4 import BeautifulSoup as bs
+import re
 
 from pprint import pprint
 
@@ -22,6 +23,15 @@ def extract_images(limit, path, URL,recursive=False):
     if response.status_code == 200:
         soup = bs(response.text, 'html.parser')
         print('SOUP :',soup.prettify())
+        imgs = soup.find_all("img")
+        urls = [img['src'] for img in imgs]
+        for url in urls:
+            file = re.search(r'(?i)[^\s]+(\.(jpg|jpeg|png|gif|bmp))$', url)
+            if not file:
+                print(f'Regeg did nit match withthe url: {url}')
+                continue
+            print(file)
+        #print(imgs)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='./spider', description='The spider program allow you to extract all the images from a website, recursively, by providing a url as a parameter.')
     parser.add_argument("-r", "--recursive", action="store_true",help="recursively downloads the images in a URL received as a parameter")
