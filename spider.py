@@ -6,6 +6,7 @@ import os
 import requests
 from bs4 import BeautifulSoup as bs
 import re
+from urllib.parse import urlparse, urljoin
 
 from pprint import pprint
 
@@ -16,6 +17,9 @@ min_img_size = 10000
 #I've put default values for L ans P directly inside the parser
 def extract_images(limit, path, URL,recursive=False):
     print(recursive, limit, path, URL)
+    limit-=1
+    if limit < 0:
+        exit()
     print("VENV","OK" if os.getenv('VIRTUAL_ENV') else "KO")
     """ headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"} 
     #pprint(headers)
@@ -54,11 +58,11 @@ def extract_images(limit, path, URL,recursive=False):
                 src = img.get('src')
                 if src:
                     image_url = src if src.startswith('http') else f'{URL}/{src}'
-                    if not re.search(r'(?i)[^\s]+(\.(jpg|jpeg|png|gif|bmp))$', image_url):
+                    if not re.search(r'(?i)([^?\s]+)(\.(?:jpg|jpeg|png|gif|bmp))(?:\?|$)', image_url):
                         print(f'Regex did not match within url: {image_url}')
                         continue
                     print(image_url)
-                    response = session.get(image_url)
+                    response = session.get(image_url, allow_redirects=False)
                     if response.status_code == 200:
                         file_name = str(count)
                         file_path = os.path.join(path, file_name)
@@ -77,6 +81,12 @@ def extract_images(limit, path, URL,recursive=False):
                         print(f'Failed to download image from : {image_url}')
                 else:
                     print('No src attribute found in img tag')
+        """         if recursive:
+            links = soup.find_all('a', href=True)
+            for link in links:
+                link_url = urljoin(URL, link['href'])
+                print("LINK URL:"+link_url)
+                extract_images(limit, path+'/_'+str(limit)+"/", link_url, recursive) """
     except Exception as e:
         print('Une erreur s\'est produite :', str(e))        
 
@@ -88,3 +98,24 @@ if __name__ == "__main__":
     parser.add_argument("URL", help="You must enter the URL from which you want to extract the image here")
     args = parser.parse_args()
     extract_images(args.limit, args.path, args.URL,args.recursive)
+
+""" (\.(?:jpg|jpeg|png|gif|bmp))(?:\?|$)':
+
+    r: This denotes a raw string literal in Python, which is often used for regular expressions. It tells Python not to interpret backslashes in any special way, which is useful for regular expressions where backslashes are common.
+
+    (?i): This is a flag that enables case-insensitive matching. The i flag means that the pattern will match regardless of whether the letters are uppercase or lowercase.
+
+    ([^?\s]+): This part of the expression matches one or more characters that are not whitespace (\s) or the question mark (?). Here's what each part means:
+        [^?\s]: The [^...] is a negated character class, which matches any character except the ones listed inside the square brackets.
+        ?: Matches the literal character "?".
+        \s: Matches any whitespace character (space, tab, newline, etc.).
+        +: Matches one or more occurrences of the preceding pattern.
+
+    (\.(?:jpg|jpeg|png|gif|bmp)): This part matches a dot followed by one of the specified image file extensions (jpg, jpeg, png, gif, bmp):
+        \.: Matches a literal dot (escaped with \ since dot has special meaning in regex).
+        (?:jpg|jpeg|png|gif|bmp): This is a non-capturing group ((?:...)) that matches one of the specified image file extensions. It matches either "jpg", "jpeg", "png", "gif", or "bmp".
+
+    (?:\?|$): This part matches either a question mark (\?) or the end of the string ($), but it's a non-capturing group ((?:...)). It's used to ensure that the URL ends either with a question mark (which could indicate query parameters) or at the end of the string. This is to handle cases where the URL may have query parameters appended to it.
+
+So, in summary, this regular expression is designed to match URLs that end with one of the specified image file extensions (jpg, jpeg, png, gif, bmp), and it's case-insensitive. It captures the URL up to the extension while ignoring any query parameters that may be present.
+ """
