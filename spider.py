@@ -11,6 +11,7 @@ from pprint import pprint
 
 default_dir = './data/'
 default_lim = 5
+min_img_size = 10000
 
 #I've put default values for L ans P directly inside the parser
 def extract_images(limit, path, URL,recursive=False):
@@ -40,7 +41,9 @@ def extract_images(limit, path, URL,recursive=False):
 
     print(imgs) """
     try:
-        response = requests.get(URL)
+        #Session object reuses underlying TCP connection which can lead to better performance
+        session = requests.Session()
+        response = session.get(URL)
         if response.status_code == 200:
             soup = bs(response.text, 'html.parser')
             imgs = soup.find_all("img")
@@ -51,20 +54,29 @@ def extract_images(limit, path, URL,recursive=False):
                 src = img.get('src')
                 if src:
                     image_url = src if src.startswith('http') else f'{URL}/{src}'
-                    response = requests.get(image_url)
+                    if not re.search(r'(?i)[^\s]+(\.(jpg|jpeg|png|gif|bmp))$', image_url):
+                        print(f'Regex did not match within url: {image_url}')
+                        continue
+                    print(image_url)
+                    response = session.get(image_url)
                     if response.status_code == 200:
                         file_name = str(count)
                         file_path = os.path.join(path, file_name)
                         with open(file_path, 'wb') as f:
                             f.write(response.content)
-                        print(f'Successfully downloaded: {file_name}')
-                        count += 1
+                        file_size = os.path.getsize(file_path)
+                        print("File size : ", file_size,"bytes")
+                        # downloading files with min size
+                        if file_size > min_img_size:
+                            print(f'Successfully downloaded: {file_name}')
+                            count += 1
+                        else:
+                            print(f'Unsuffisiant file size: {file_size}')
+
                     else:
                         print(f'Failed to download image from : {image_url}')
                 else:
                     print('No src attribute found in img tag')
-
-            
     except Exception as e:
         print('Une erreur s\'est produite :', str(e))        
 
