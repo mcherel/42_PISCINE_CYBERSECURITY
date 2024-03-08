@@ -61,7 +61,7 @@ def extract_images(limit, path, URL,recursive=False):
                     if not re.search(r'(?i)([^?\s]+)(\.(?:jpg|jpeg|png|gif|bmp))(?:\?|$)', image_url):
                         print(f'Regex did not match within url: {image_url}')
                         continue
-                    print(image_url)
+                    #print(image_url)
                     response = session.get(image_url, allow_redirects=False)
                     if response.status_code == 200:
                         file_name = str(count)
@@ -76,17 +76,22 @@ def extract_images(limit, path, URL,recursive=False):
                             count += 1
                         else:
                             print(f'Unsuffisiant file size: {file_size}')
+                        if count == 5:
+                            break
 
                     else:
                         print(f'Failed to download image from : {image_url}')
                 else:
                     print('No src attribute found in img tag')
-        """         if recursive:
+        if recursive:
             links = soup.find_all('a', href=True)
             for link in links:
                 link_url = urljoin(URL, link['href'])
+                #print("LINK : "+str(lnk))
+                path+='/_' + str(limit) + "/"
                 print("LINK URL:"+link_url)
-                extract_images(limit, path+'/_'+str(limit)+"/", link_url, recursive) """
+                #extract_images(limit, path+'/_'+str(limit)+"/", link_url, recursive)
+                extract_images(limit, path, link_url, recursive)
     except Exception as e:
         print('Une erreur s\'est produite :', str(e))        
 
