@@ -13,14 +13,18 @@ from pprint import pprint
 default_dir = './data/'
 default_lim = 5
 min_img_size = 10000
+visited_urls = set()
 
 #I've put default values for L ans P directly inside the parser
-def extract_images(limit, path, URL,recursive=False):
+def extract_images(limit, path, URL, recursive=False):
     print(recursive, limit, path, URL)
-    limit-=1
-    if limit < 0:
-        exit()
     print("VENV","OK" if os.getenv('VIRTUAL_ENV') else "KO")
+    if limit == 0:
+        print("The limit has reached a zero")
+        exit
+    if URL in visited_urls:
+        return
+    visited_urls.add(URL)
     """ headers = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"} 
     #pprint(headers)
     response = requests.get(url=URL, headers=headers)
@@ -84,14 +88,18 @@ def extract_images(limit, path, URL,recursive=False):
                 else:
                     print('No src attribute found in img tag')
         if recursive:
+            print('LIMIT :'+str(limit))
+            limit-=1
             links = soup.find_all('a', href=True)
+            top_five_links = links[:10]
             for link in links:
                 link_url = urljoin(URL, link['href'])
                 #print("LINK : "+str(lnk))
                 path+='/_' + str(limit) + "/"
                 print("LINK URL:"+link_url)
                 #extract_images(limit, path+'/_'+str(limit)+"/", link_url, recursive)
-                extract_images(limit, path, link_url, recursive)
+                if limit:
+                    extract_images(limit, link_url, link_url, recursive)
     except Exception as e:
         print('Une erreur s\'est produite :', str(e))        
 
